@@ -1,17 +1,13 @@
 from fastapi import APIRouter
 from app.schemas.campaign_schema import CampaignRequest
-
 from app.services.gemini_service import generate_campaign_content
 from app.services.dalle_service import generate_dalle_images
 from app.services.pika_service import generate_pika_video
 
 router = APIRouter()
 
-
 @router.post("/campaign/generate")
-
 def generate_campaign(request: CampaignRequest):
-
     gemini_output = generate_campaign_content(
         request.campaign_prompt,
         request.platform
