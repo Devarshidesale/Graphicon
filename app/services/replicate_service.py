@@ -7,13 +7,17 @@ replicate_client = replicate.Client(api_token=REPLICATE_API_KEY)
 def generate_video(prompt: str):
 
     output = replicate_client.run(
-        "cjwbw/zeroscope-v2-xl:9f747673945c8c1c2a3bdb1f1c43b0df",
+        "stability-ai/stable-video-diffusion",
         input={
-            "prompt": prompt,
-            "num_frames": 24
+            "prompt": prompt
         }
     )
 
+    if isinstance(output, list):
+        video_url = output[0]
+    else:
+        video_url = output
+
     return {
-        "video_url": output
+        "video_url": video_url
     }

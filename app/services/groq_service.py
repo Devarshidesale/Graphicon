@@ -12,23 +12,40 @@ client = OpenAI(
 def generate_campaign_content(prompt: str, platform: str):
 
     system_prompt = f"""
-You are a social media marketing expert.
+    You are a social media marketing expert.
 
-Campaign idea:
-{prompt}
+    Campaign idea:
+    {prompt}
 
-Platform:
-{platform}
+    Generate platform-specific content for:
 
-Return ONLY JSON in this format:
+    1. LinkedIn (professional, informative)
+    2. Instagram (engaging, visual, trendy)
+    3. Twitter/X (short, catchy, viral)
 
-{{
- "caption": "string",
- "hashtags": ["#tag1","#tag2","#tag3","#tag4","#tag5"],
- "image_prompt": "detailed prompt for AI image generation",
- "video_prompt": "detailed prompt for AI video generation"
-}}
-"""
+    Return ONLY JSON in this format:
+
+    {{
+    "linkedin": {{
+        "caption": "...",
+        "hashtags": ["#..."],
+        "image_prompt": "...",
+        "video_prompt": "..."
+    }},
+    "instagram": {{
+        "caption": "...",
+        "hashtags": ["#..."],
+        "image_prompt": "...",
+        "video_prompt": "..."
+    }},
+    "twitter": {{
+        "caption": "...",
+        "hashtags": ["#..."],
+        "image_prompt": "...",
+        "video_prompt": "..."
+    }}
+    }}
+    """
 
     response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
