@@ -1,4 +1,3 @@
-from httpcore import request
 from fastapi import APIRouter
 import asyncio
 from app.models.campaign_model import Campaign

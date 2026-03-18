@@ -146,16 +146,46 @@ const CampaignPanel = () => {
   const [platforms, setPlatforms]   = useState([]);
   const [outputs, setOutputs]       = useState([]);
   const [generating, setGenerating] = useState(false);
+  const [result, setResult]         = useState(null);
+  const [error, setError]           = useState(null);
 
   const togglePlatform = id => setPlatforms(p => p.includes(id) ? p.filter(x=>x!==id) : [...p, id]);
   const toggleOutput   = id => setOutputs(o => o.includes(id) ? o.filter(x=>x!==id) : [...o, id]);
 
   const canGenerate = prompt.trim().length > 10 && platforms.length > 0 && outputs.length > 0;
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!canGenerate) return;
     setGenerating(true);
-    setTimeout(() => setGenerating(false), 2800);
+    setResult(null);
+    setError(null);
+
+    try {
+      const response = await fetch('http://localhost:8000/campaign/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          campaign_prompt: prompt,
+          platform: platforms.join(', '),
+          generate_caption: outputs.includes('caption'),
+          generate_images: outputs.includes('image') || outputs.includes('carousel'),
+          generate_video: outputs.includes('video'),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate campaign. Please verify your backend is running and API keys are set.');
+      }
+
+      const data = await response.json();
+      setResult(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
@@ -207,6 +237,23 @@ const CampaignPanel = () => {
             ? '✦ GENERATE CAMPAIGN ASSETS'
             : 'FILL IN DETAILS TO GENERATE'}
       </button>
+
+      {error && (
+        <div style={{ marginTop: 16, padding: 12, background: 'rgba(255,50,50,0.2)', border: '1px solid #ff3333', borderRadius: 8, color: '#ffaaaa', fontSize: 13, fontFamily: 'var(--sans)' }}>
+          {error}
+        </div>
+      )}
+
+      {result && (
+        <div style={{ marginTop: 16, padding: 16, background: 'rgba(0,0,0,0.3)', borderRadius: 12, border: '1px solid var(--gold-light)' }}>
+          <h3 style={{ fontFamily: 'var(--serif)', color: 'var(--gold)', marginBottom: 12 }}>Campaign Assets Generated!</h3>
+          <div className="page-scroll" style={{ maxHeight: 300 }}>
+            <pre style={{ fontFamily: 'var(--mono)', fontSize: 11, color: '#fff', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              {JSON.stringify(result, null, 2)}
+            </pre>
+          </div>
+        </div>
+      )}
 
       {/* Hint row */}
       {!canGenerate && (
