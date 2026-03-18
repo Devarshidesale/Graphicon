@@ -1,7 +1,11 @@
-import { Routes, Route } from 'react-router-dom'
-import HomePage from './Pages/SocialCampaignApp'
-import Works from './Pages/Works'
-import { useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react';
+import Nav from '../Components/Nav';
+import CampaignPanel from '../Components/CampaignPanel';
+import CenterFlower from '../Components/CenterFlower';
+import PixelFlower from '../Components/PixelFlower';
+import Footer from '../Components/Footer';
+
+/* ─── Google Fonts injected in App useEffect ─── */
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400;1,700&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
@@ -288,20 +292,171 @@ const css = `
   .tag-dot { width:6px;height:6px;border-radius:50%;background:var(--gold);animation:blink 1.8s ease infinite; }
 `;
 
-const App = () => {
+/* ═══════════════════════════════════════
+   Background floating flowers
+═══════════════════════════════════════ */
+const BG_FLOWERS = [
+  { top: '12%', left: '6%', size: 36, color: '#FF3333', anim: 'float-a', delay: '0s', opacity: 0.8 },
+  { top: '7%', left: '22%', size: 24, color: '#FFD700', anim: 'float-b', delay: '0.6s', opacity: 0.7 },
+  { top: '18%', right: '12%', size: 44, color: '#FF3333', anim: 'float-c', delay: '0.3s', opacity: 0.75 },
+  { bottom: '22%', left: '7%', size: 30, color: '#FFD700', anim: 'float-b', delay: '1s', opacity: 0.7 },
+  { bottom: '28%', right: '8%', size: 38, color: '#FF3333', anim: 'float-a', delay: '0.5s', opacity: 0.8 },
+  { top: '42%', left: '3%', size: 20, color: '#FFD700', anim: 'float-c', delay: '0.2s', opacity: 0.55 },
+  { top: '55%', right: '5%', size: 26, color: '#FF3333', anim: 'float-b', delay: '0.9s', opacity: 0.65 },
+  { top: '30%', left: '50%', size: 18, color: '#FFD700', anim: 'float-a', delay: '1.4s', opacity: 0.4 },
+];
+
+/* ═══════════════════════════════════════
+  HOME PAGE
+═══════════════════════════════════════ */
+const HomePage = () => {
+  const flowerRefs = useRef([]);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => { setTimeout(() => setReady(true), 100); }, []);
+
   useEffect(() => {
-    const style = document.createElement('style')
-    style.textContent = css
-    document.head.appendChild(style)
-    return () => document.head.removeChild(style)
-  }, [])
+    const onMove = e => {
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      flowerRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const d = ((i % 4) + 1) * 0.4;
+        const x = (cx - e.pageX) / 60 * d;
+        const y = (cy - e.pageY) / 60 * d;
+        el.style.transform = `translate(${x}px,${y}px)`;
+      });
+    };
+    document.addEventListener('mousemove', onMove);
+    return () => document.removeEventListener('mousemove', onMove);
+  }, []);
 
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/works" element={<Works />} />
-    </Routes>
-  )
-}
+    <div style={{
+      minHeight: '100vh', width: '100%',
+      backgroundColor: 'var(--blue-mid)', color: '#fff',
+      display: 'flex', flexDirection: 'column',
+      position: 'relative', overflow: 'hidden',
+    }}>
+      {/* Grid */}
+      <div className="bg-grid" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }} />
 
-export default App
+      {/* Radial glow spots */}
+      <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: 600, height: 600, borderRadius: '50%', background: 'rgba(0,68,204,0.6)', filter: 'blur(100px)', zIndex: 0, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: '-15%', left: '-5%', width: 500, height: 500, borderRadius: '50%', background: 'rgba(0,34,120,0.5)', filter: 'blur(80px)', zIndex: 0, pointerEvents: 'none' }} />
+
+      {/* Floating background flowers */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', overflow: 'hidden' }}>
+        {BG_FLOWERS.map((f, i) => (
+          <div
+            key={i}
+            ref={el => flowerRefs.current[i] = el}
+            style={{
+              position: 'absolute',
+              top: f.top, left: f.left, right: f.right, bottom: f.bottom,
+              opacity: f.opacity,
+              animation: `${f.anim} ${4 + i * 0.7}s ease-in-out ${f.delay} infinite`,
+              transition: 'transform 0.1s linear',
+            }}
+          >
+            <PixelFlower color={f.color} size={f.size} />
+          </div>
+        ))}
+      </div>
+
+      {/* Nav */}
+      <Nav />
+
+      {/* Main split layout */}
+      <main style={{
+        flex: 1, position: 'relative', zIndex: 20,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 48px 60px',
+        gap: 40,
+      }}>
+        {/* LEFT: Hero title */}
+        <div style={{ flex: '0 0 auto', maxWidth: 580 }}>
+          {/* Label */}
+          <div className={`fade-up ${ready ? '' : 'fade-up'}`} style={{ opacity: ready ? 1 : 0, marginBottom: 24 }}>
+            <span style={{
+              fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 700,
+              letterSpacing: '0.25em', color: 'rgba(255,255,255,0.55)',
+              textTransform: 'uppercase',
+            }}>
+              Social Media Campaign Automation
+            </span>
+          </div>
+
+          {/* Giant name / wordmark */}
+          <div className="fade-up delay-1" style={{ opacity: ready ? 1 : 0 }}>
+            <h1 style={{
+              fontFamily: 'var(--serif)',
+              fontStyle: 'italic',
+              fontSize: 'clamp(64px,10vw,130px)',
+              fontWeight: 700,
+              lineHeight: 0.9,
+              color: '#fff',
+              letterSpacing: '-0.02em',
+              display: 'flex',
+              alignItems: 'flex-end',
+            }}>
+              <span>graph</span>
+              <span style={{ width: '4vw', minWidth: 32, maxWidth: 64, height: '9vw', minHeight: 55, maxHeight: 120, display: 'inline-block', margin: '0 2px', flexShrink: 0 }}>
+                <CenterFlower />
+              </span>
+              <span>con</span>
+            </h1>
+          </div>
+
+          {/* Tagline */}
+          <div className="fade-up delay-2" style={{ opacity: ready ? 1 : 0, marginTop: 28 }}>
+            <p style={{
+              fontFamily: 'var(--sans)',
+              fontSize: 'clamp(15px,1.6vw,19px)',
+              color: 'rgba(255,255,255,0.65)',
+              lineHeight: 1.7,
+              maxWidth: 460,
+              fontWeight: 300,
+            }}>
+              Describe your feature, pick your platforms — and watch graphicon craft scroll-stopping visuals, videos, carousels & captions.
+            </p>
+          </div>
+
+          {/* Stats row */}
+          <div className="fade-up delay-3" style={{ opacity: ready ? 1 : 0, display: 'flex', gap: 32, marginTop: 40 }}>
+            {[['10x', 'Faster creation'], ['4', 'Platforms'], ['∞', 'Output types']].map(([num, label]) => (
+              <div key={num}>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: 28, fontWeight: 700, color: 'var(--gold)', lineHeight: 1 }}>{num}</div>
+                <div style={{ fontFamily: 'var(--sans)', fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* RIGHT: Campaign Panel */}
+        <div className="fade-up delay-4" style={{ opacity: ready ? 1 : 0, flex: '0 0 auto', width: '100%', maxWidth: 600 }}>
+          <CampaignPanel />
+        </div>
+      </main>
+
+      <Footer />
+
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════
+   APP ROOT
+═══════════════════════════════════════ */
+const App = () => {
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
+  return <HomePage />;
+};
+
+export default App;
