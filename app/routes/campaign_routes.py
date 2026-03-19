@@ -21,9 +21,6 @@ async def generate_campaign(request: CampaignRequest):
     instagram = gemini_output["instagram"]
     twitter = gemini_output["twitter"]
     
-    hashtags = gemini_output["hashtags"]
-    image_prompt = gemini_output["image_prompt"]
-    video_prompt = gemini_output["video_prompt"]
 
     tasks = []
 
@@ -33,19 +30,25 @@ async def generate_campaign(request: CampaignRequest):
         tasks.append(asyncio.to_thread(generate_sd_images, twitter["image_prompt"]))
 
     if request.generate_video:
-        tasks.append(asyncio.to_thread(generate_video, video_prompt))
+        tasks.append(asyncio.to_thread(generate_video, instagram["video_prompt"]))
 
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
-    images, video = None, None
+    images = None
+    video = None
 
     idx = 0
+
     if request.generate_images:
-        images = results[idx] if not isinstance(results[idx], Exception) else {"error": str(results[idx])}
-        idx += 1
+        images = {
+            "linkedin": results[0],
+            "instagram": results[1],
+            "twitter": results[2]
+        }
+        idx = 3
 
     if request.generate_video:
-        video = results[idx] if not isinstance(results[idx], Exception) else {"error": str(results[idx])}
+        video = results[idx]
         
     db = SessionLocal()
 
@@ -53,11 +56,15 @@ async def generate_campaign(request: CampaignRequest):
         prompt=request.campaign_prompt,
         platform=request.platform,
         caption={
-            linkedin["caption"], 
-            instagram["caption"], 
-            twitter["caption"]
+            "linkedin": linkedin["caption"],
+            "instagram": instagram["caption"],
+            "twitter": twitter["caption"]
         },
-        hashtags=linkedin["hashtags"],
+        hashtags={
+            "linkedin": linkedin["hashtags"],
+            "instagram": instagram["hashtags"],
+            "twitter": twitter["hashtags"]
+        },
         images=images,
         video=video
     )

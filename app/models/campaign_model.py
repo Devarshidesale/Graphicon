@@ -6,10 +6,9 @@ class Campaign(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     prompt = Column(String)
-    linkedin = Column(JSON)
-    instagram = Column(JSON)
-    twitter = Column(JSON)
-    caption = Column(String)
+    platform = Column(String)
+    caption = Column(JSON)
     hashtags = Column(JSON)
     images = Column(JSON)
     video = Column(JSON)
+    
