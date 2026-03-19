@@ -8,11 +8,17 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 
-DATABASE_CONNECTION = os.getenv("DB_CONNECTION")
+DATABASE_CONNECTION = os.getenv("DB_CONNECTION", "sqlite:///./sql_app.db")
+
+connect_args = {}
+if DATABASE_CONNECTION.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+elif DATABASE_CONNECTION.startswith("postgres"):
+    connect_args = {"sslmode": "require"}
 
 engine = create_engine(
     DATABASE_CONNECTION,
-    connect_args={"sslmode": "require"}
+    connect_args=connect_args
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
